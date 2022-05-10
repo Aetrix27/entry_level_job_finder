@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gocolly/colly"
 )
@@ -11,31 +12,45 @@ import (
 //}
 
 func main() {
-	c := colly.NewCollector()
+	go func(msg string) {
+		c := colly.NewCollector()
 
-	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+		// On every a element which has href attribute call callback
+		//var inStock bool
 
-		link := e.Attr("https://www.linkedin.com/jobs/entry-level-software-engineer-jobs/")
+		c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+			// Print link
+			fmt.Println(e.Text)
+		})
 
-		fmt.Printf("Link found: %q -> %s\n", e.Text, link)
+		// Before making a request print "Visiting ..."
+		c.OnRequest(func(r *colly.Request) {
+			fmt.Println("Visiting", r.URL.String())
+		})
 
-		e.Request.Visit(link)
-	})
+		// Start scraping on https://hackerspaces.org
+		c.Visit("https://www.linkedin.com/jobs/entry-level-software-engineer-jobs/")
 
-	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL)
-	})
+		c2 := colly.NewCollector()
 
-	c.OnError(func(_ *colly.Response, err error) {
-		fmt.Println("Something went wrong:", err)
-	})
+		// On every a element which has href attribute call callback
+		//var inStock bool
 
-	c.OnResponse(func(r *colly.Response) {
-		fmt.Println("Visited", r.Request.URL)
-	})
+		c2.OnHTML("a[href]", func(e *colly.HTMLElement) {
+			// Print link
+			fmt.Println(e.Text)
+		})
 
-	c.OnScraped(func(r *colly.Response) {
-		fmt.Println("Finished", r.Request.URL)
-	})
+		// Before making a request print "Visiting ..."
+		c2.OnRequest(func(r *colly.Request) {
+			fmt.Println("Visiting", r.URL.String())
+		})
+
+		// Start scraping on https://hackerspaces.org
+		c2.Visit("https://www.indeed.com/q-Entry-Level-Software-Engineer-jobs.html?vjk=74a4204805ec6555")
+	}("going")
+
+	time.Sleep(time.Second)
+	fmt.Println("done")
 
 }
